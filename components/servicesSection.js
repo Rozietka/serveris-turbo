@@ -1,6 +1,5 @@
 import { file } from '../lib/file.js';
 import { utils } from '../lib/utils.js';
-
 async function servicesSection() {
     const getServicesData = async () => {
         const data = [];
@@ -8,22 +7,31 @@ async function servicesSection() {
         if (err) {
             return data;
         }
-
         for (const serviceFileName of servicesFiles) {
             const [err, content] = await file.read('services', serviceFileName);
             if (err) {
                 continue;
             }
-
             let obj = utils.parseJSONtoObject(content);
             if (!obj) {
                 continue;
             }
-
             data.push(obj);
         }
-
         return data;
+    }
+
+    const isValidService = (service) => {
+        if (typeof service !== 'object'
+            || typeof service.icon !== 'string'
+            || service.icon === ''
+            || typeof service.title !== 'string'
+            || service.title === ''
+            || typeof service.description !== 'string'
+            || service.description === '') {
+            return false;
+        }
+        return true;
     }
 
     const renderList = async () => {
@@ -32,8 +40,12 @@ async function servicesSection() {
             servicesData.length === 0) {
             return '';
         }
+
         let HTML = '';
         for (const service of servicesData) {
+            if (!isValidService(service)) {
+                continue;
+            }
             HTML += `<div class="service">
                         <i class="fa fa-${service.icon} icon"></i>
                         <h3 class="title">${service.title}</h3>
@@ -50,5 +62,4 @@ async function servicesSection() {
                 <div class="row services-list">${await renderList()}</div>
             </section>`;
 }
-
 export { servicesSection };
