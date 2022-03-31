@@ -1,26 +1,25 @@
+import { file } from '../lib/file.js';
+
 async function servicesSection() {
-    const getServicesData = () => {
-        return [
-            {
-                icon: 'globe',
-                title: 'Dizainas',
-                description: 'Each time a digital asset is purchased or sold, Sequoir donates a percentage of the fees back into the development of the asset through its charitable foundation.',
-            },
-            {
-                icon: 'plane',
-                title: 'Lakunas',
-                description: 'Time a digital asset donates a percentage of the fees back into the development of the asset through its charitable foundation.',
-            },
-            {
-                icon: 'car',
-                title: 'Taksistas',
-                description: 'Digital asset is purchased or sold, Sequoir donates a the development of the asset through its charitable foundation.',
-            },
-        ];
+    const getServicesData = async () => {
+        const data = [];
+        const [err, servicesFiles] = await file.list('services');
+        if (err) {
+            return data;
+        }
+        console.log(servicesFiles);
+
+        // perskaityti kiekvieno to failo turini
+        // turini sudeti i masyva
+        return data;
     }
 
     const renderList = () => {
         const servicesData = getServicesData();
+        if (!Array.isArray(servicesData) ||
+            servicesData.length === 0) {
+            return '';
+        }
 
         let HTML = '';
         for (const service of servicesData) {
@@ -32,7 +31,6 @@ async function servicesSection() {
         }
         return HTML;
     }
-
     return `<section class="container bg-gradient services">
                 <div class="row">
                     <h2>Services</h2>
@@ -41,5 +39,4 @@ async function servicesSection() {
                 <div class="row services-list">${renderList()}</div>
             </section>`;
 }
-
 export { servicesSection };
