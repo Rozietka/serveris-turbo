@@ -25,6 +25,7 @@ const isValidService = (service) => {
         || !isValidString(service.description, maxDescLength)) {
         return false;
     }
+}
 
 async function servicesSection() {
     const getServicesData = async () => {
