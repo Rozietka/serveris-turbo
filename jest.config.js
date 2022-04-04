@@ -7,3 +7,5 @@ const config = {
     // notify: true,
     // notifyMode: 'always',
 };
+
+export default config;
