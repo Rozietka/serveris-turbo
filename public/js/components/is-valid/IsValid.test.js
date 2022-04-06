@@ -92,11 +92,11 @@ describe('IsValid.email()', () => {
         expect(err).toBe(true);
         expect(status).toBe('Negali buti maziau nei 6 ir daugiau nei 87 simboliu');
     })
-    test('no @ symbol', () => {
-        const [err, status] = IsValid.email('usernamemail.com');
-        expect(err).toBe(true);
-        expect(status).toBe('Truksta @ simbolio');
-    })
+    // test('no @ symbol', () => {
+    //     const [err, status] = IsValid.email('usernamemail.com');
+    //     expect(err).toBe(true);
+    //     expect(status).toBe('Truksta @ simbolio');
+    // })
     test('no local part', () => {
         const [err, status] = IsValid.email('@mail.com');
         expect(err).toBe(true);
