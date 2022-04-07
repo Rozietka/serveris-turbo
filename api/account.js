@@ -1,20 +1,21 @@
+import { file } from "../lib/file.js";
 import { IsValid } from "../lib/IsValid.js";
 
 const handler = {};
 
-handler.account = (data, callback) => {
+handler.account = async (data, callback) => {
     const acceptableMethods = ['get', 'post', 'put', 'delete'];
+
     if (acceptableMethods.includes(data.httpMethod)) {
-        return handler._method[data.httpMethod](data, callback);
+        return await handler._method[data.httpMethod](data, callback);
     }
+
     return callback(400, 'Account: veiksmas NEleistinas');
 }
+
 handler._method = {};
 
-handler._method.post = (data, callback) => {
-    const minUsernameLength = 4;
-    const maxUsernameLength = 20;
-
+handler._method.post = async (data, callback) => {
     // 1) reikia patikrinti ar data.payload (keys and values) yra teisingi
     const user = data.payload;
     if (typeof user !== 'object' || Object.keys(user).length !== 3) {
@@ -23,7 +24,6 @@ handler._method.post = (data, callback) => {
             msg: 'Vartotojo objekta sudaro tik 3 elementai (username, email, password)',
         })
     }
-
     const [usernameError, usernameMsg] = IsValid.username(user.username);
     if (usernameError) {
         return callback(200, {
@@ -47,10 +47,12 @@ handler._method.post = (data, callback) => {
     }
 
     // 2) nuskaitome kokie failai yra .data/accounts folderyje
+    const accountsList = await file.list('accounts');
+    console.log(accountsList);
+
     // 3) patikrinti ar nera failo [email].json (jau sukurtas account'as)
     // 4) uzsifruoti vartotojo slaptazodi
     // 5) sukuriame [email].json ir i ji irasome vartotojo objekta
-
     console.log(data.payload);
     return callback(200, {
         action: 'POST',
