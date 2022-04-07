@@ -1,9 +1,7 @@
 import { file } from "../lib/file.js";
 import { IsValid } from "../lib/IsValid.js";
 import { utils } from "../lib/utils.js";
-
 const handler = {};
-
 handler.account = async (data, callback) => {
     const acceptableMethods = ['get', 'post', 'put', 'delete'];
     if (acceptableMethods.includes(data.httpMethod)) {
@@ -42,30 +40,24 @@ handler._method.post = async (data, callback) => {
             msg: passwordMsg,
         })
     }
-
     // 2) nuskaitome kokie failai yra .data/accounts folderyje
     const [accountsListError, accountsList] = await file.list('accounts');
-
     if (accountsListError) {
         return callback(500, {
             status: 'Error',
             msg: 'Ivyko klaida bandant registruoti vartotoja',
         })
     }
-
     // 3) patikrinti ar nera failo [email].json (jau sukurtas account'as)
     const userFile = user.email + '.json';
-
     if (accountsList.includes(userFile)) {
         return callback(200, {
             status: 'Error',
             msg: 'Vartotojas tokiu el pastu jau uzregistruotas',
         })
     }
-
     // 4) uzsifruoti vartotojo slaptazodi
     user.password = utils.hash(user.password);
-
     // 5) irasyti papildomos informacijos: registracijos laikas
     const now = Date.now();
     user.registerDate = now;
@@ -73,7 +65,6 @@ handler._method.post = async (data, callback) => {
     user.passwordChanges = 0;
     user.lastLoginDate = 0;
     user.loginHistory = [];
-
     // 6) sukuriame [email].json ir i ji irasome vartotojo objekta
     const [userCreateError] = await file.create('accounts', userFile, user);
     if (userCreateError) {
@@ -82,18 +73,47 @@ handler._method.post = async (data, callback) => {
             msg: 'Klaida bandant irasyti vartotojo duomenis',
         })
     }
-
     return callback(200, {
         status: 'Success',
         msg: 'Vartotojo paskyra sukurta sekmingai',
     })
 }
-handler._method.get = (data, callback) => {
+
+handler._method.get = async (data, callback) => {
+    const url = data.trimmedPath;
+    const email = url.split('/')[2];
+
+    const [emailError, emailMsg] = IsValid.email(email);
+    if (emailError) {
+        return callback(200, {
+            status: 'Error',
+            msg: emailMsg,
+        })
+    }
+
+    let [err, content] = await file.read('accounts', email + '.json');
+    if (err) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Nepavyko rasti norimo vartotojo duomenu',
+        })
+    }
+
+    content = utils.parseJSONtoObject(content);
+    if (!content) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Nepavyko apdoroti vartotojo duomenu',
+        })
+    }
+    delete content.password;
+
     return callback(200, {
-        action: 'GET',
-        msg: 'Stai tau visa info apie dominanti vartotoja',
+        status: 'Success',
+        msg: JSON.stringify(content),
     })
 }
+
 handler._method.put = (data, callback) => {
     return callback(200, {
         action: 'PUT',
