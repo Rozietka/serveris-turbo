@@ -1,20 +1,17 @@
 import { file } from "../lib/file.js";
 import { IsValid } from "../lib/IsValid.js";
+import { utils } from "../lib/utils.js";
 
 const handler = {};
 
 handler.account = async (data, callback) => {
     const acceptableMethods = ['get', 'post', 'put', 'delete'];
-
     if (acceptableMethods.includes(data.httpMethod)) {
         return await handler._method[data.httpMethod](data, callback);
     }
-
     return callback(400, 'Account: veiksmas NEleistinas');
 }
-
 handler._method = {};
-
 handler._method.post = async (data, callback) => {
     // 1) reikia patikrinti ar data.payload (keys and values) yra teisingi
     const user = data.payload;
@@ -47,15 +44,47 @@ handler._method.post = async (data, callback) => {
     }
 
     // 2) nuskaitome kokie failai yra .data/accounts folderyje
-    const accountsList = await file.list('accounts');
-    console.log(accountsList);
+    const [accountsListError, accountsList] = await file.list('accounts');
+
+    if (accountsListError) {
+        return callback(500, {
+            status: 'Error',
+            msg: 'Ivyko klaida bandant registruoti vartotoja',
+        })
+    }
 
     // 3) patikrinti ar nera failo [email].json (jau sukurtas account'as)
+    const userFile = user.email + '.json';
+
+    if (accountsList.includes(userFile)) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Vartotojas tokiu el pastu jau uzregistruotas',
+        })
+    }
+
     // 4) uzsifruoti vartotojo slaptazodi
-    // 5) sukuriame [email].json ir i ji irasome vartotojo objekta
-    console.log(data.payload);
+    user.password = utils.hash(user.password);
+
+    // 5) irasyti papildomos informacijos: registracijos laikas
+    const now = Date.now();
+    user.registerDate = now;
+    user.lastPasswordUpdate = now;
+    user.passwordChanges = 0;
+    user.lastLoginDate = 0;
+    user.loginHistory = [];
+
+    // 6) sukuriame [email].json ir i ji irasome vartotojo objekta
+    const [userCreateError] = await file.create('accounts', userFile, user);
+    if (userCreateError) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Klaida bandant irasyti vartotojo duomenis',
+        })
+    }
+
     return callback(200, {
-        action: 'POST',
+        status: 'Success',
         msg: 'Vartotojo paskyra sukurta sekmingai',
     })
 }
