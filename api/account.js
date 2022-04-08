@@ -9,7 +9,12 @@ handler.account = async (data, callback) => {
     }
     return callback(400, 'Account: veiksmas NEleistinas');
 }
+
 handler._method = {};
+
+/**
+ * Vartotojo paskyros sukurimas
+ */
 handler._method.post = async (data, callback) => {
     // 1) reikia patikrinti ar data.payload (keys and values) yra teisingi
     const user = data.payload;
@@ -79,7 +84,44 @@ handler._method.post = async (data, callback) => {
     })
 }
 
+/**
+ * Vartotojo informacijos gavimas
+ */
 handler._method.get = async (data, callback) => {
+    const url = data.trimmedPath;
+    const email = url.split('/')[2];
+    const [emailError, emailMsg] = IsValid.email(email);
+    if (emailError) {
+        return callback(200, {
+            status: 'Error',
+            msg: emailMsg,
+        })
+    }
+    let [err, content] = await file.read('accounts', email + '.json');
+    if (err) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Nepavyko rasti norimo vartotojo duomenu',
+        })
+    }
+    content = utils.parseJSONtoObject(content);
+    if (!content) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Nepavyko apdoroti vartotojo duomenu',
+        })
+    }
+    delete content.password;
+    return callback(200, {
+        status: 'Success',
+        msg: JSON.stringify(content),
+    })
+}
+
+/**
+ * Vartotojo informacijos atnaujinimas
+ */
+handler._method.put = (data, callback) => {
     const url = data.trimmedPath;
     const email = url.split('/')[2];
 
@@ -91,35 +133,35 @@ handler._method.get = async (data, callback) => {
         })
     }
 
-    let [err, content] = await file.read('accounts', email + '.json');
-    if (err) {
+    const { username, password } = data.payload;
+    let updatedValues = 0;
+
+    if (username && IsValid.username(username)) {
+        // pakeisime username
+        updatedValues++;
+    }
+
+    if (password && IsValid.password(password)) {
+        // pakeisime password
+        updatedValues++;
+    }
+
+    if (!updatedValues) {
         return callback(200, {
             status: 'Error',
-            msg: 'Nepavyko rasti norimo vartotojo duomenu',
+            msg: 'Objekte nerasta informacijos, kuria butu leidziama atnaujinti, todel niekas nebuvo atnaujinta',
         })
     }
 
-    content = utils.parseJSONtoObject(content);
-    if (!content) {
-        return callback(200, {
-            status: 'Error',
-            msg: 'Nepavyko apdoroti vartotojo duomenu',
-        })
-    }
-    delete content.password;
-
-    return callback(200, {
-        status: 'Success',
-        msg: JSON.stringify(content),
-    })
-}
-
-handler._method.put = (data, callback) => {
     return callback(200, {
         action: 'PUT',
         msg: 'Vartotojo informacija sekmingai atnaujinta',
     })
 }
+
+/**
+ * Vartotojo paskyros istrinimas
+ */
 handler._method.delete = (data, callback) => {
     return callback(200, {
         action: 'DELETE',
