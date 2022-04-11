@@ -109,18 +109,19 @@ handler._method.get = async (data, callback) => {
         })
     }
     delete content.password;
+
     return callback(200, {
         status: 'Success',
-        msg: JSON.stringify(content),
+        msg: content,
     })
 }
+
 /**
  * Vartotojo informacijos atnaujinimas
  */
 handler._method.put = async (data, callback) => {
     const url = data.trimmedPath;
     const email = url.split('/')[2];
-
     const [emailError, emailMsg] = IsValid.email(email);
     if (emailError) {
         return callback(200, {
@@ -135,19 +136,16 @@ handler._method.put = async (data, callback) => {
         newUserData = { ...newUserData, username };
         updatedValues++;
     }
-
     if (password && IsValid.password(password)) {
         newUserData = { ...newUserData, password: utils.hash(password) };
         updatedValues++;
     }
-
     if (!updatedValues) {
         return callback(200, {
             status: 'Error',
             msg: 'Objekte nerasta informacijos, kuria butu leidziama atnaujinti, todel niekas nebuvo atnaujinta',
         })
     }
-
     const [readErr, readMsg] = await file.read('accounts', email + '.json');
     if (readErr) {
         return callback(500, {
@@ -155,7 +153,6 @@ handler._method.put = async (data, callback) => {
             msg: 'Nepavyko gauti vartotojo informacijos, kuria bandoma atnaujinti',
         })
     }
-
     const userObj = utils.parseJSONtoObject(readMsg);
     if (!userObj) {
         return callback(500, {
@@ -163,12 +160,10 @@ handler._method.put = async (data, callback) => {
             msg: 'Ivyko klaida, bandant nuskaityti vartotojo informacija',
         })
     }
-
     const updatedUserData = {
         ...userObj,
         ...newUserData,
     }
-
     const [updateErr] = await file.update('accounts', email + '.json', updatedUserData);
     if (updateErr) {
         return callback(500, {
@@ -176,7 +171,6 @@ handler._method.put = async (data, callback) => {
             msg: 'Nepavyko atnaujinti vartotojo informacijos',
         })
     }
-
     return callback(200, {
         status: 'Success',
         msg: 'Vartotojo informacija sekmingai atnaujinta',
@@ -185,9 +179,28 @@ handler._method.put = async (data, callback) => {
 /**
  * Vartotojo paskyros istrinimas
  */
-handler._method.delete = (data, callback) => {
+handler._method.delete = async (data, callback) => {
+    const url = data.trimmedPath;
+    const email = url.split('/')[2];
+
+    const [emailError, emailMsg] = IsValid.email(email);
+    if (emailError) {
+        return callback(200, {
+            status: 'Error',
+            msg: emailMsg,
+        })
+    }
+
+    const [deleteErr] = await file.delete('accounts', email + '.json');
+    if (deleteErr) {
+        return callback(500, {
+            status: 'Error',
+            msg: 'Nepavyko istrinti vartotojo',
+        })
+    }
+
     return callback(200, {
-        action: 'DELETE',
+        status: 'Success',
         msg: 'Vartotojas sekmingai istrinta is sistemos',
     })
 }
