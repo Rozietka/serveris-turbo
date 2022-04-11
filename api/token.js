@@ -1,6 +1,7 @@
 import { file } from "../lib/file.js";
 import { IsValid } from "../lib/IsValid.js";
 import { utils } from "../lib/utils.js";
+import config from '../config.js';
 
 const handler = {};
 
@@ -11,9 +12,7 @@ handler.token = (data, callback) => {
     }
     return callback(400, 'Token: veiksmas NEleistinas');
 }
-
 handler._method = {};
-
 handler._method.post = async (data, callback) => {
     const user = data.payload;
     const { email, password } = user;
@@ -38,7 +37,6 @@ handler._method.post = async (data, callback) => {
             msg: 'Netinkama objekto struktura (turi buti tik: email, password)',
         })
     }
-
     const [readErr, readMsg] = await file.read('accounts', email + '.json');
     if (readErr) {
         return callback(400, {
@@ -46,7 +44,6 @@ handler._method.post = async (data, callback) => {
             msg: 'Klaida bandant prisijungti: nesutampa email arba slaptazodis',
         })
     }
-
     const userObj = utils.parseJSONtoObject(readMsg);
     if (!userObj) {
         return callback(500, {
@@ -54,7 +51,6 @@ handler._method.post = async (data, callback) => {
             msg: 'Klaida bandant nuskaityti vartotojo duomenis',
         })
     }
-
     const hashedPassword = utils.hash(password);
     if (hashedPassword !== userObj.password) {
         return callback(400, {
@@ -63,9 +59,14 @@ handler._method.post = async (data, callback) => {
         })
     }
 
-    const token = {};
+    const tokenID = utils.randomString(config.sessionTokenLength);
+    const token = {
+        expire: Date.now() + config.cookiesMaxAge * 1000,
+        email: email,
+        browser: 'chrome',
+    };
 
-    const [createErr] = await file.create('token', 'token.json', token);
+    const [createErr] = await file.create('token', tokenID + '.json', token);
     if (createErr) {
         return callback(500, {
             status: 'Error',
@@ -75,7 +76,10 @@ handler._method.post = async (data, callback) => {
 
     return callback(200, {
         status: 'Success',
-        msg: token,
+        msg: {
+            id: tokenID,
+            ...token
+        },
     })
 }
 
