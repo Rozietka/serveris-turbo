@@ -2,9 +2,7 @@ import { file } from "../lib/file.js";
 import { IsValid } from "../lib/IsValid.js";
 import { utils } from "../lib/utils.js";
 import config from '../config.js';
-
 const handler = {};
-
 handler.token = (data, callback) => {
     const acceptableMethods = ['get', 'post', 'put', 'delete'];
     if (acceptableMethods.includes(data.httpMethod)) {
@@ -58,14 +56,12 @@ handler._method.post = async (data, callback) => {
             msg: 'Klaida bandant prisijungti: nesutampa email arba slaptazodis',
         })
     }
-
     const tokenID = utils.randomString(config.sessionTokenLength);
     const token = {
         expire: Date.now() + config.cookiesMaxAge * 1000,
         email: email,
         browser: 'chrome',
     };
-
     const [createErr] = await file.create('token', tokenID + '.json', token);
     if (createErr) {
         return callback(500, {
@@ -74,12 +70,25 @@ handler._method.post = async (data, callback) => {
         })
     }
 
+    const cookies = [
+        'login-token=' + tokenID,
+        'path=/',
+        'domain=localhost',
+        'max-age=' + config.cookiesMaxAge,
+        'expires=Sun, 16 Jul 3567 06:23:41 GMT',
+        // 'Secure',
+        'SameSite=Lax',
+        'HttpOnly'
+    ];
+
     return callback(200, {
         status: 'Success',
         msg: {
             id: tokenID,
             ...token
         },
+    }, {
+        'Set-Cookie': cookies.join('; '),
     })
 }
 
