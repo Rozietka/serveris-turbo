@@ -69,7 +69,6 @@ handler._method.post = async (data, callback) => {
             msg: 'Klaida bandant isduoti sesijos Token',
         })
     }
-
     const cookies = [
         'login-token=' + tokenID,
         'path=/',
@@ -80,7 +79,6 @@ handler._method.post = async (data, callback) => {
         'SameSite=Lax',
         'HttpOnly'
     ];
-
     return callback(200, {
         status: 'Success',
         msg: {
@@ -95,7 +93,6 @@ handler._method.post = async (data, callback) => {
         'Set-Cookie': cookies.join('; '),
     })
 }
-
 handler._method.get = (data, callback) => {
     return callback(200, {
         action: 'GET',
@@ -114,4 +111,28 @@ handler._method.delete = (data, callback) => {
         msg: 'TOKEN sekmingai istrintas is sistemos',
     })
 }
+handler._method.verify = async (token) => {
+    if (typeof token !== 'string'
+        || token.length !== config.sessionTokenLength) {
+        return false;
+    }
+
+    const [readErr, readContent] = await file.read('token', token + '.json');
+    if (readErr) {
+        return false;
+    }
+
+    const obj = utils.parseJSONtoObject(readContent);
+    if (!obj) {
+        return false;
+    }
+
+    if (obj.expire < Date.now()) {
+        await file.delete('token', token + '.json');
+        return false;
+    }
+
+    return true;
+}
+
 export default handler;
