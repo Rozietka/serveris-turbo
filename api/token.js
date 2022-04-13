@@ -87,6 +87,10 @@ handler._method.post = async (data, callback) => {
             id: tokenID,
             ...token
         },
+        action: {
+            type: 'redirect',
+            href: '/',
+        },
     }, {
         'Set-Cookie': cookies.join('; '),
     })

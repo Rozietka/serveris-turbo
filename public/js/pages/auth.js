@@ -1,5 +1,4 @@
 import { IsValid } from '../components/is-valid/IsValid.js';
-
 /*
 1) susirasti forma ir jos VISUS laukus
 2) surinkti informacija is formos
@@ -27,27 +26,27 @@ submitDOM.addEventListener('click', (e) => {
         }
         formData[id] = value;
     }
-
     if (formData.password
         && formData.repass
         && formData.password !== formData.repass) {
         errors.push('Nesutampa slaptazodziai');
     }
     errorsDOM.innerText = errors.join('\r\n');
-
     if (errors.length === 0) {
         delete formData.repass;
-
         const xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
-          if (this.readyState === 4 && this.status === 200) {
-            const data = JSON.parse(this.responseText);
-            console.log(data);
-          }
+            if (this.readyState === 4 && this.status === 200) {
+                const data = JSON.parse(this.responseText);
+
+                if (data.status === 'Success') {
+                    if (data.action.type === 'redirect') {
+                        location.href = data.action.href;
+                    }
+                }
+            }
         };
         xhttp.open("POST", formDOM.action, true);
         xhttp.send(JSON.stringify(formData));
-
     }
-
 })
