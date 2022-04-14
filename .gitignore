@@ -2,6 +2,7 @@
 /.vscode
 /coverage
 /.data/accounts/*.json
+/.data/products/*.json
 /.data/token/*.json
 package-lock.json
 .DS_Store
