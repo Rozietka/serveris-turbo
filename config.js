@@ -12,7 +12,7 @@ environments.dev = {
     },
     password: 'demo-password',
     hashingSecret: '847jh5ge2r54yj152ty8y4',
-    cookiesMaxAge: 3600,
+    cookiesMaxAge: 10,
     sessionTokenLength: 10,
 }
 
