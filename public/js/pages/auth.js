@@ -38,11 +38,14 @@ submitDOM.addEventListener('click', (e) => {
         xhttp.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
                 const data = JSON.parse(this.responseText);
-
                 if (data.status === 'Success') {
                     if (data.action.type === 'redirect') {
                         location.href = data.action.href;
                     }
+                }
+
+                if (data.status === 'Error') {
+                    errorsDOM.innerText = data.msg;
                 }
             }
         };
