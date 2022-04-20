@@ -14,7 +14,7 @@ const isValidService = (service) => {
     const servicesKeysCount = 3;
     const maxIconLength = 20;
     const maxTitleLength = 30;
-    const maxDescLength = 300;
+    const maxDescLength = 100;
     if (typeof service !== 'object'
         || Array.isArray(service)
         || service === null
@@ -25,6 +25,7 @@ const isValidService = (service) => {
         || !isValidString(service.description, maxDescLength)) {
         return false;
     }
+    return true;
 }
 
 async function servicesSection() {
@@ -47,7 +48,6 @@ async function servicesSection() {
         }
         return data;
     }
-
     const renderList = async () => {
         const servicesData = await getServicesData();
         if (!Array.isArray(servicesData) ||
@@ -75,5 +75,4 @@ async function servicesSection() {
                 <div class="row services-list">${await renderList()}</div>
             </section>`;
 }
-
 export { servicesSection, isValidService };
