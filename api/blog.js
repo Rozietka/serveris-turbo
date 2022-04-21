@@ -21,7 +21,6 @@ handler._method.post = async (data, callback) => {
             msg: 'Blog post objekta sudaro tik 3 elementai (title, slug, content)',
         })
     }
-
     const [titleError, titleMsg] = IsValid.title(post.title);
     if (titleError) {
         return callback(200, {
@@ -43,7 +42,6 @@ handler._method.post = async (data, callback) => {
             msg: contentMsg,
         })
     }
-
     const [blogListError, blogList] = await file.list('blog');
     if (blogListError) {
         return callback(500, {
@@ -51,7 +49,6 @@ handler._method.post = async (data, callback) => {
             msg: 'Ivyko klaida bandant kurti blog posta',
         })
     }
-
     const postFile = post.slug + '.json';
     if (blogList.includes(postFile)) {
         return callback(200, {
@@ -59,13 +56,18 @@ handler._method.post = async (data, callback) => {
             msg: 'Blog postas su tokia nuoroda (slug) jau sukurtas',
         })
     }
-
     const now = Date.now();
     post.registerDate = now;
     post.lastUpdated = now;
-    post.author = 'petras@mail.com';
+    post.author = data.user.email;
 
-    console.log(data);
+    const [postCreateError] = await file.create('blog', postFile, post);
+    if (postCreateError) {
+        return callback(200, {
+            status: 'Error',
+            msg: 'Klaida bandant irasyti blog posta',
+        })
+    }
 
     return callback(200, {
         status: 'Success',
