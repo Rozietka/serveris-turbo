@@ -69,6 +69,18 @@ class IsValid {
         // end
         return [false, 'OK'];
     }
+
+    static title() {
+        return [false, 'OK'];
+    }
+
+    static slug() {
+        return [false, 'OK'];
+    }
+
+    static content() {
+        return [false, 'OK'];
+    }
 }
 
 export { IsValid }
