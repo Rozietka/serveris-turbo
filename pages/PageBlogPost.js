@@ -9,15 +9,12 @@ class PageBlogPost extends PageTemplate {
         super(data);
         this.pageCSSfileName = 'blog-post';
     }
-
     getPostData() {
         return {};
     }
-
     isValidPost() {
         return true;
     }
-
     badPostHTML() {
         return `<section class="container blog-inner">
                     <h1 class="row title">500</h1>
@@ -31,14 +28,6 @@ class PageBlogPost extends PageTemplate {
                     <footer class="row">Author</footer>
                 </section>`;
     }
-    isValidPost(post) {
-        if (typeof post !== 'object'
-            || Array.isArray(post)
-            || post === null) {
-            return false;
-        }
-        return true;
-    }
 
     mainHTML() {
         const postData = this.getPostData();
@@ -49,5 +38,4 @@ class PageBlogPost extends PageTemplate {
         }
     }
 }
-
 export { PageBlogPost };
