@@ -1,5 +1,4 @@
 import { PageTemplate } from "../lib/PageTemplate.js";
-
 class PageBlogPost extends PageTemplate {
     /**
      * Sabloninio puslapio konstruktorius.
@@ -9,6 +8,14 @@ class PageBlogPost extends PageTemplate {
     constructor(data) {
         super(data);
         this.pageCSSfileName = 'blog-post';
+    }
+
+    getPostData() {
+        return {};
+    }
+
+    isValidPost() {
+        return true;
     }
 
     badPostHTML() {
@@ -34,16 +41,12 @@ class PageBlogPost extends PageTemplate {
     }
 
     mainHTML() {
-        if (false) {
-            return this.correctPostHTML();
+        const postData = this.getPostData();
+        if (this.isValidPost(postData)) {
+            return this.correctPostHTML(postData);
         } else {
             return this.badPostHTML();
         }
-        // if (this.isValidPost(postData)) {
-        //     return this.correctPostHTML(postData);
-        // } else {
-        //     return this.badPostHTML();
-        // }
     }
 }
 
